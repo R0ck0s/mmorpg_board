@@ -1,0 +1,26 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+Объявления
+{% endblock title %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">{{adv_detail.advert_title}}</h5>
+        </div>
+        <div class="card-body">
+
+            <p class="card-text">{{adv_detail.advert_text|safe}}</p>
+            <p class="card-text"></p>
+            <p class="card-text"><small class="text-muted">{{adv_detail.advert_date|date:'d.M.Y'}}</small></p>
+            <p class="card-text"><small class="text-muted" align="right">автор: {{adv_detail.author}}</small></p>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'resp_create' adv_detail.id %}" role="button">Отклик</a>
+            {% if adv_detail.author_id == request.user.id %}
+                <a class="btn btn-outline-success btn-sm" href="{% url 'adv_update' adv_detail.id %}" role="button">Обновить</a>
+                <a class="btn btn-outline-danger btn-sm" href="{% url 'adv_delete' adv_detail.id %}" role="button">Удалить</a>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock content %}

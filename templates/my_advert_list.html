@@ -1,0 +1,51 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+News
+{% endblock title %}
+
+{% block content %}
+    <h2>Мои объявления:</h2>
+    {% if my_advert_list %}
+        {% for advert in my_advert_list %}
+            <div class="card ">
+                <div class="card-header ">
+                    <h8 class="card-title">{{ advert.advert_title }}</h8>
+                </div>
+                    <div class="card-body">
+                        <p class="card-text">{{advert.advert_text|truncatewords:40|safe}}</p>
+                        <a class="btn btn-outline-dark btn-sm" href="{% url 'advert_detail' advert.id %}" role="button">Читать далее</a>
+                        <a class="btn btn-outline-success btn-sm" href="{% url 'adv_update' advert.id %}" role="button">Обновить</a>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'adv_delete' advert.id %}" role="button">Удалить</a>
+                    </div>
+            </div>
+        {% endfor %}
+
+
+    {% else %}
+        <h2>Новостей нет"</h2>
+    {% endif %}
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                    {% if page_obj.previous_page_number != 1 %}
+                        ...
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a></li>
+                    {% endif %}
+                {% endif %}
+
+                <li class="page-item"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a></li>
+                    {% if paginator.num_pages != page_obj.next_page_number %}
+                        ...
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a></li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </nav>
+
+{% endblock content %}
