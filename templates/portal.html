@@ -9,14 +9,30 @@
             {%for adv in adverts %}
                 <div class="card ">
                     <div class="card-header ">
-                        <h5 class="card-title">{{adv.advert_title}}</h5>
+                        <h5 class="card-title">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    {{adv.advert_title}}
+                                </div>
+                                <div class="col-sm-6 text-end">
+                                    {% if request.user in adv.advert_category.subscribers.all %}
+                                        {{adv.advert_category}}   <button type="button" class="btn btn-success btn-sm" disabled>Вы подписаны</button>
+                                    {% else %}
+                                        {{adv.advert_category}}  <a class="btn btn-outline-success btn-sm" role="button" href="{% url 'subscribe' adv.advert_category.id %}">Подписаться</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <p class="card-text">{{adv.advert_text|truncatewords:40|safe}}</p>
-                        <p><small class="text-muted">категория: {{adv.get_advert_category_display}}</small></p>
+                        <p class="card-text">{{adv.advert_text|truncatewords:80|safe}}</p>
                         <p><small class="text-muted">Автор: {{adv.author}}</small></p>
+                        <p></p>
                         <a class="btn btn-outline-dark btn-sm" href="{% url 'advert_detail' adv.id %}" role="button">Читать далее</a>
-                        <a class="btn btn-outline-primary btn-sm" href="{% url 'resp_create' adv.id %}" role="button">Отклик</a>
+                        {% if adv.author_id != request.user.id %}
+                            <a class="btn btn-outline-primary btn-sm" href="{% url 'resp_create' adv.id %}" role="button">Отклик</a>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

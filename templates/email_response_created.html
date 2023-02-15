@@ -6,9 +6,9 @@
     <title>Document</title>
 </head>
 <body>
-    <h4>У вас новый отклик к объявлению: {{ response.advert.advert_title }}</h4>
-    <h4>{{ response.response_text }}</h4>
-    <h4> <a href="http://127.0.0.1:8000{% url 'my_response_list' %}">мои отклики</a></h4>
+    <p>У вас новый отклик к объявлению: {{ instance.advert.advert_title }}</p>
+    <h4>{{ instance.response_text }}</h4>
+    <h4> <a href="{{ link }}">мои отклики</a></h4>
 
 </body>
 </html>

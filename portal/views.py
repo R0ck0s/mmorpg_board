@@ -1,28 +1,42 @@
-from datetime import datetime
-
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
-from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Advert, Response
-from .forms import AdvertForm, ResponseForm
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .filters import ResponseFilter
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django_filters.views import FilterView
-from .tasks import notify_new_response, notify_response_accepted
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+
+from .models import Advert, Response, Category
+from .forms import AdvertForm, ResponseForm
+from .filters import ResponseFilter
+from .tasks import notify_new_response, notify_response_accepted, notify_new_advert
 
 
 class AdvertList(ListView):
     model = Advert
-    ordering = 'advert_date'
+    ordering = '-advert_date'
     template_name = 'portal.html'
     context_object_name = 'adverts'
     paginate_by = 4
+
 
 class AdvertDetail(DetailView):
     model = Advert
     template_name = 'advert_detail.html'
     context_object_name = 'adv_detail'
+
+
+class MyAdvertListView(ListView):
+    model = Advert
+    template_name = 'my_advert_list.html'
+    context_object_name = 'my_advert_list'
+    ordering = '-advert_date'
+    paginate_by = 4
+
+    def get_queryset(self):
+        self.author_id = self.request.user.id
+        queryset = Advert.objects.filter(author_id = self.author_id)
+        return queryset
+
 
 class AdvertCreate(LoginRequiredMixin, CreateView):
     form_class = AdvertForm
@@ -31,11 +45,15 @@ class AdvertCreate(LoginRequiredMixin, CreateView):
     permission_required = ('portal.add_advert')
 
     def form_valid(self, form):
+        adv = form.save(commit=False)
         form.instance.author_id = self.request.user.id
+        adv.save()
+        notify_new_advert(adv, adv.id)
         return super(AdvertCreate, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('my_advert_list')
+
 
 class AdvertUpdate(LoginRequiredMixin, UpdateView):
     form_class = AdvertForm
@@ -44,11 +62,13 @@ class AdvertUpdate(LoginRequiredMixin, UpdateView):
     context_object_name = 'adv_update'
     permission_required = ('portal.change_advert')
 
+
 class AdvertDelete(LoginRequiredMixin, DeleteView):
     model = Advert
     template_name = 'advert_delete.html'
     success_url = reverse_lazy('advert_list')
     permission_required = ('portal.delete_advert')
+
 
 class ResponseCreate(LoginRequiredMixin, CreateView):
     form_class = ResponseForm
@@ -56,7 +76,6 @@ class ResponseCreate(LoginRequiredMixin, CreateView):
     template_name = 'response_create.html'
     context_object_name = 'adv_detail'
     permission_required = ('portal.add_response')
-
 
     def form_valid(self, form):
         resp = form.save(commit=False)
@@ -69,22 +88,12 @@ class ResponseCreate(LoginRequiredMixin, CreateView):
         return reverse('advert_list')
 
 
-class MyAdvertListView(ListView):
-    model = Advert
-    template_name = 'my_advert_list.html'
-    context_object_name = 'my_advert_list'
-    paginate_by = 4
-
-    def get_queryset(self):
-        self.author_id = self.request.user.id
-        queryset = Advert.objects.filter(author_id = self.author_id)
-        return queryset
-
 class MyResponsesListView(FilterView):
     model = Response
     template_name = 'my_response_list.html'
     context_object_name = 'my_responses'
     filterset_class = ResponseFilter
+    ordering = '-response_date'
     paginate_by = 4
 
     def get_queryset(self):
@@ -98,6 +107,7 @@ class MyResponsesListView(FilterView):
         return context
 
 
+# Принимаем отклик и отправляем автору сообщение о этом
 def response_accept(request, pk):
     resp = Response.objects.get(id = pk)
     resp.response_accepted = True
@@ -105,33 +115,22 @@ def response_accept(request, pk):
     notify_response_accepted(resp)
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+
+# Удаляем отклик
 def response_delete(request, pk):
     resp = Response.objects.get(id = pk)
     resp.delete()
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+# Подписка текущего пользователя на категорию
+@login_required
+def subscribe(request, pk):
+    user = request.user
+    category = Category.objects.get(id=pk)
+    category.subscribers.add(user)
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-
-# def response_accept(self):
-#     self.response.response_accepted = True
-#     response.save(update_fields=['response_accepted'])
-#     return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-# def subscribe(request, pk):
-#     user = request.user
-#     category = Category.objects.get(id=pk)
-#     category.subscribers.add(user)
-#     message = 'Вы успешно подписались на рассылку новостей категории'
-#     return render(request, 'post_created_email.html', {'category': category, 'message': message})
-
-# def upgrade_user(request):
-#     user = request.user
-#     authors_group = Group.objects.get(name='authors')
-#     if not request.user.groups.filter(name='authors').exists():
-#         authors_group.user_set.add(user)
-#         Author.objects.create(user_id=user.id)
-#     return redirect('/my_responses/')
 
 
 

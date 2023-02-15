@@ -7,7 +7,20 @@
 {% block content %}
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">{{adv_detail.advert_title}}</h5>
+            <h5 class="card-title">
+                <div class="row">
+                    <div class="col-sm-6">
+                        {{adv_detail.advert_title}}
+                    </div>
+                    <div class="col-sm-6 text-end">
+                        {% if request.user in adv_detail.advert_category.subscribers.all %}
+                            {{adv_detail.advert_category}}   <button type="button" class="btn btn-success btn-sm" disabled>Вы подписаны</button>
+                        {% else %}
+                            {{adv_detail.advert_category}}  <a class="btn btn-outline-success btn-sm" role="button" href="{% url 'subscribe' adv_detail.advert_category.id %}">Подписаться</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </h5>
         </div>
         <div class="card-body">
 
@@ -15,10 +28,11 @@
             <p class="card-text"></p>
             <p class="card-text"><small class="text-muted">{{adv_detail.advert_date|date:'d.M.Y'}}</small></p>
             <p class="card-text"><small class="text-muted" align="right">автор: {{adv_detail.author}}</small></p>
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'resp_create' adv_detail.id %}" role="button">Отклик</a>
             {% if adv_detail.author_id == request.user.id %}
                 <a class="btn btn-outline-success btn-sm" href="{% url 'adv_update' adv_detail.id %}" role="button">Обновить</a>
                 <a class="btn btn-outline-danger btn-sm" href="{% url 'adv_delete' adv_detail.id %}" role="button">Удалить</a>
+            {% else %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'resp_create' adv_detail.id %}" role="button">Отклик</a>
             {% endif %}
         </div>
     </div>

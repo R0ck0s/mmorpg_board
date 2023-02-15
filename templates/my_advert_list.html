@@ -10,10 +10,10 @@ News
         {% for advert in my_advert_list %}
             <div class="card ">
                 <div class="card-header ">
-                    <h8 class="card-title">{{ advert.advert_title }}</h8>
+                    <h5 class="card-title">{{ advert.advert_title }}</h6>
                 </div>
                     <div class="card-body">
-                        <p class="card-text">{{advert.advert_text|truncatewords:40|safe}}</p>
+                        <p class="card-text">{{advert.advert_text|truncatewords:80|safe}}</p>
                         <a class="btn btn-outline-dark btn-sm" href="{% url 'advert_detail' advert.id %}" role="button">Читать далее</a>
                         <a class="btn btn-outline-success btn-sm" href="{% url 'adv_update' advert.id %}" role="button">Обновить</a>
                         <a class="btn btn-outline-danger btn-sm" href="{% url 'adv_delete' advert.id %}" role="button">Удалить</a>

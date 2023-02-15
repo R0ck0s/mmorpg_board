@@ -1,10 +1,10 @@
+from django_summernote.widgets import SummernoteWidget
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import Textarea
-from django_summernote.widgets import SummernoteWidget
 
 from .models import Advert, Response
-
 
 
 class AdvertForm(forms.ModelForm):
@@ -23,6 +23,9 @@ class AdvertForm(forms.ModelForm):
        widgets = {
             'advert_text': SummernoteWidget,
        }
+       empty_label = {
+           'advert_category': 'Выберите категорию'
+       }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -34,6 +37,7 @@ class AdvertForm(forms.ModelForm):
                 {'text': 'Текст публикации не должен быть идентичен её названию'}
             )
         return cleaned_data
+
 
 class ResponseForm(forms.ModelForm):
     class Meta:
